@@ -6,10 +6,30 @@ const router = express.Router();
 
 const User= new mongoose.model("User",userSchema);
 
-//get all
+//get 
 router.get("/:username", async (req,res)=>{
+ 
+    try {
+      const data=await User.find(
+        {username: req.params.username});
+      res.status(200).json({
+        result:data,
+        message: "Success", 
+      });
+      
+    } catch (error) {
+      res.status(500).json({
+        error: "There was a server side error!",
+      });
+    }
+  
 
-  await User.find(
+});
+
+//login
+router.post("/:username", (req,res)=>{
+
+  User.findOne(
     {username: req.params.username},(err,data)=>{
     if (err) {
       res.status(500).json({
@@ -21,15 +41,18 @@ router.get("/:username", async (req,res)=>{
         message: "Success", 
       });
     }
+    if(result==null){
+
+    }
 
   })
 
 });
 
 //delete user
-router.delete("/:username", async (req,res)=>{
+router.delete("/delete/:username",  (req,res)=>{
 
-  await User.deleteOne(
+   User.deleteOne(
     {username: req.params.username},(err)=>{
     if (err) {
       res.status(500).json({
@@ -46,13 +69,38 @@ router.delete("/:username", async (req,res)=>{
 
 });
 
-//put
-router.put("/:username", async (req,res)=>{
+//patch user
+router.patch("/pupdate/:username", (req,res)=>{
 
-  await User.updateOne(
+  User.findOneAndUpdate(
+    {username: req.params.username},{
+      $set:{
+        //password:'12'
+        password:req.body.password
+      }
+    },(err)=>{
+      if (err) {
+        res.status(500).json({
+          error: "There was a server side error!",
+        });
+      } else {
+        res.status(200).json({
+          message: "Updated Success", 
+        });
+      }
+  
+    })
+
+});
+
+//put or update
+router.put("/update/:username", (req,res)=>{
+
+  User.updateOne(
     {username: req.params.username},{
     $set:{
-      password:'12'
+      //password:'12'
+      password:req.body.password
     }
   },(err)=>{
     if (err) {
@@ -70,9 +118,9 @@ router.put("/:username", async (req,res)=>{
 });
 
 //post multiple 
-router.post("/post_all", async (req,res)=>{
+router.post("/post_all", (req,res)=>{
 
-  await User.insertMany(req.body,(err)=>{
+  User.insertMany(req.body,(err)=>{
     if (err) {
       res.status(500).json({
         error: "There was a server side error!",
@@ -88,11 +136,11 @@ router.post("/post_all", async (req,res)=>{
 });
 
 //post login
-router.post('/registration', async (req,res)=>{
+router.post('/registration', (req,res)=>{
     console.log("registration start");
 
     const newUser =new User(req.body);
-    await newUser.save((err)=>{
+     newUser.save((err)=>{
         if (err) {
             res.status(500).json({
               error: "There was a server side error!",
