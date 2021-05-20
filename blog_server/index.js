@@ -1,11 +1,13 @@
 const express = require("express");
-const mongoose = require("mongoose")
-const userHandler=require("./routeHandler/userHandler")
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const blogHandler=require("./routeHandler/blogHandler");
+const userHandler=require("./routeHandler/userHandler");
 
 //express ap init
 const app=express()
 app.use(express.json())
-
+dotenv.config()
 //database
 mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true, useUnifiedTopology: true})
 .then(() => console.log("connection successfull"))
@@ -15,6 +17,7 @@ mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true, useUn
 
 
 //application route
+app.use("/blog",blogHandler);
 app.use("/user",userHandler);
 
 

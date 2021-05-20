@@ -1,5 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 //const { route } = require("../../blog_server/routeHandler/todoHandler");
 const userSchema=require('../schemas/userSchema')
 const router = express.Router();
@@ -26,33 +28,12 @@ router.get("/:username", async (req,res)=>{
 
 });
 
-//login
-router.post("/:username", (req,res)=>{
 
-  User.findOne(
-    {username: req.params.username},(err,data)=>{
-    if (err) {
-      res.status(500).json({
-        error: "There was a server side error!",
-      });
-    } else {
-      res.status(200).json({
-        result:data,
-        message: "Success", 
-      });
-    }
-    if(result==null){
-
-    }
-
-  })
-
-});
 
 //delete user
 router.delete("/delete/:username",  (req,res)=>{
 
-   User.deleteOne(
+    User.deleteOne(
     {username: req.params.username},(err)=>{
     if (err) {
       res.status(500).json({
@@ -72,7 +53,7 @@ router.delete("/delete/:username",  (req,res)=>{
 //patch user
 router.patch("/pupdate/:username", (req,res)=>{
 
-  User.findOneAndUpdate(
+    User.findOneAndUpdate(
     {username: req.params.username},{
       $set:{
         //password:'12'
@@ -96,7 +77,7 @@ router.patch("/pupdate/:username", (req,res)=>{
 //put or update
 router.put("/update/:username", (req,res)=>{
 
-  User.updateOne(
+    User.updateOne(
     {username: req.params.username},{
     $set:{
       //password:'12'
@@ -120,7 +101,7 @@ router.put("/update/:username", (req,res)=>{
 //post multiple 
 router.post("/post_all", (req,res)=>{
 
-  User.insertMany(req.body,(err)=>{
+    User.insertMany(req.body,(err)=>{
     if (err) {
       res.status(500).json({
         error: "There was a server side error!",
@@ -135,26 +116,63 @@ router.post("/post_all", (req,res)=>{
 
 });
 
-//post login
-router.post('/registration', (req,res)=>{
+//post signup
+router.post('/user/signup', async(req,res)=>{
+  try {
     console.log("registration start");
+    const hashedPassword=await bcrypt.hash(req.body.password,10);
+    const newUser =new User({
+      username : req.body.username,
+      password : hashedPassword,
+      email : req.body.email,
+    });
+    await newUser.save()
 
-    const newUser =new User(req.body);
-     newUser.save((err)=>{
-        if (err) {
-            res.status(500).json({
-              error: "There was a server side error!",
-            });
+    res.status(200).json({
+      message: "save success",
+    });
+    }catch (error) {
+      res.status(500).json({
+        error: "There was a server side error!",
+      });
+    }
+ 
+});
+
+// LOGIN
+router.post("/user/login", async(req, res) => {
+  try {
+      const user = await User.find({ username: req.body.username });
+      if(user && user.length > 0) {
+          const isValidPassword = await bcrypt.compare(req.body.password, user[0].password);
+
+          if(isValidPassword) {
+              // generate token
+              const token = jwt.sign({
+                  username: user[0].username,
+                  userId: user[0]._id,
+              }, process.env.JWT_SECRET, {
+                  expiresIn: '1h'
+              });
+
+              res.status(200).json({
+                  "access_token": token,
+                  "message": "Login successful!"
+              });
           } else {
-            res.status(200).json({
-             
-              message: "Success",
-              
-            });
+              res.status(401).json({
+                  "error": "Authetication failed!"
+              });
           }
-    })
-
-
-
+      } else {
+          res.status(401).json({
+              "error": "Authetication failed!"
+          });
+      }
+  } catch {
+      res.status(401).json({
+          "error": "Authetication failed!"
+      });
+  }
 });
 module.exports=router;
