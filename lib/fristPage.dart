@@ -1,3 +1,5 @@
+import 'package:blog_app/login.dart';
+import 'package:blog_app/signUpPage.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/material.dart';
@@ -45,7 +47,9 @@ class MyHomePage extends StatelessWidget {
                   MaterialButton(
                     minWidth: double.infinity,
                     height: 60,
-                    onPressed: (){},
+                    onPressed: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => Login()));
+                    },
                     shape: RoundedRectangleBorder(
                       side: BorderSide(
                         color: Colors.black
@@ -60,11 +64,21 @@ class MyHomePage extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
 
+                      borderRadius: BorderRadius.circular(50),
+                      border: Border(
+                        bottom: BorderSide(color: Colors.black),
+                        top: BorderSide(color: Colors.black),
+                        left: BorderSide(color: Colors.black),
+                        right: BorderSide(color: Colors.black),
+                      ),
+
                     ),
                     child:  MaterialButton(
                       minWidth: double.infinity,
                       height: 60,
-                      onPressed: (){},
+                      onPressed: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => SignUpPage()));
+                      },
                       color: Colors.amber,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
